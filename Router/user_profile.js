@@ -1,9 +1,10 @@
-import {RegisterNewAccount} from '../user_profile/login.js';
-import {app} from '../project_connections/express_connection.js';
-import {Login} from '../user_profile/login.js';
-import {Logout} from '../user_profile/login.js';
+const {Login, Logout, RegisterNewAccount} = require('../user_profile/login.js');
+const {Router} = require("express");
+const router = Router();
 
 
-app.post('/register',RegisterNewAccount);
-app.post('/login',Login);
-app.get('/logout',Logout);
+router.post('/register', RegisterNewAccount);
+router.post('/login', Login);
+router.get('/logout', Logout);
+
+module.exports = router

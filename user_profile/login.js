@@ -1,43 +1,19 @@
-import express from 'express'
-import bcrypt from 'bcrypt'
-import {con} from '../project_connections/database_connection.js'
-import {app} from '../project_connections/express_connection.js'
-import {startport} from "../project_connections/start_port.js";
-import {session_init} from "../project_connections/session_init.js";
+require('express');
+const bcrypt = require('bcrypt')
+const con = require('../project_connections/database_connection')
 
-let sql= "";
+let sql = "";
 
-
-
-session_init;
-con.connect(err=> {
-    if (err) throw err;
-    console.log("Connected!");
-
-});
-let Email = "ahmed.abbas@example.com";
-sql = "SELECT ID FROM Profile WHERE Email ='" + Email + "'" ;
-con.query(sql,  (err, result)=> {
-        if (err) throw err;
-
-        console.log(result);
-    });
-
-
-app.use(express.json());
-
-startport;
 
 let response = "";
 
-
-export const RegisterNewAccount = async (req, res) => {
+const RegisterNewAccount = async (req, res) => {
     try {
         if (req.session.Email) {
             res.send(`Hi ${req.session.Fname} ${req.session.Lname}, you're already signed in. Please sign out to register a new account.`);
         } else {
-            const { Fname, Lname, Email, Password, Profession } = req.body;
-
+             const {Fname, Lname, Email, Password, Profession} = req.body;
+            console.log(req.body)
             // Check if the user already exists
             const existingUserQuery = "SELECT Email FROM Profile WHERE Email = ?";
             con.query(existingUserQuery, [Email], async (err, result) => {
@@ -71,6 +47,7 @@ export const RegisterNewAccount = async (req, res) => {
                                         req.session.Profession = Profession;
                                         req.session.Score = 0;
                                         res.status(201).send("Registration successful. You can now proceed.");
+                                        con.end()
                                     }
                                 });
                             }
@@ -86,25 +63,25 @@ export const RegisterNewAccount = async (req, res) => {
 };
 
 
-export const Login = async(req,res)=>{
+const Login = async (req, res) => {
     try {
         if (req.session.Email) {
             res.send(`Hi ${req.session.Fname} ${req.session.Lname}, you're already signed in`);
         } else {
-            const {Fname , Lname , Password} = req.body;
+             const {Fname, Lname, Password} = req.body;
             console.log(Fname + Lname + Password);
-            sql = "SELECT *  FROM Profile WHERE FirstName ='" + Fname + "' and LastName ='" + Lname + "'" ;
-            con.query(sql,  (err, result)=> {
+            sql = "SELECT *  FROM Profile WHERE FirstName ='" + Fname + "' and LastName ='" + Lname + "'";
+            con.query(sql, (err, result) => {
                 if (err) throw err;
-                if(!result || result.length === 0){
+                if (!result || result.length === 0) {
                     response = "wrong name or password";
-                }else{
+                } else {
                     result.forEach(row => {
-                        sql = "SELECT Pass FROM UserPass WHERE Email ='" + row.Email + "'" ;
-                        con.query(sql,async  (err, result)=> {
+                        sql = "SELECT Pass FROM UserPass WHERE Email ='" + row.Email + "'";
+                        con.query(sql, async (err, result) => {
 
                             console.log(result[0].Pass);
-                            if(await bcrypt.compare(Password , result[0].Pass )){
+                            if (await bcrypt.compare(Password, result[0].Pass)) {
 
                                 response = `Welcome ${row.FirstName}`;
                                 req.session.Email = row.Email;
@@ -125,23 +102,24 @@ export const Login = async(req,res)=>{
             });
             setTimeout(() => {
                 res.send(response);
-                console.log('This will be logged after 2000 milliseconds (2 seconds)');
+                 console.log('This will be logged after 2000 milliseconds (2 seconds)');
             }, 500);
 
         }
-    } catch (err) {
+     } catch (err) {
         console.log(err);
         res.status(500).send(err);
     }
 
-
 };
 
 
-export const Logout = (req,res)=>{
-    req.session.destroy(err=>{
-        if(err)
+const Logout = (req, res) => {
+    req.session.destroy(err => {
+        if (err)
             throw err;
         else res.send("ss").status(200);
     });
 };
+
+module.exports = {RegisterNewAccount, Logout, Login}

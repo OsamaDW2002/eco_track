@@ -1,9 +1,10 @@
-import mysql from "mysql";
+const mysql = require("mysql");
 
-export const con = mysql.createConnection({
-    host: "34.165.41.217",
-    user: "osama",
-    password: "12028609",
-    database:"eco_track",
-    port:3306
+const con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    database: "eco_track",
+    port: 3306
 });
+con.connect()
+module.exports = con;

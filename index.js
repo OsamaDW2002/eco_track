@@ -1,10 +1,15 @@
-import express from 'express'
-import bcrypt from 'bcrypt'
-const app= express();
-const port = 6969
+const port = 6005
+const express=require('express')
+const session = require("express-session");
+const app=express()
+const router=require('./Router/user_profile')
+app.use(session({
+    secret: 'secret-key',
+    saveUninitialized:false,
+    resave: false,
+    cookie: { maxAge: 60 * 1000 }
+}));
+app.use(express.json());
+app.use("/user_profile",router)
 
-app.get('/test', function(req, res){
-    res.send("Hello world!");
-});
-
-app.listen(port);
+app.listen(6005)

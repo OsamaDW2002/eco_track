@@ -14,7 +14,6 @@
     "node": "18"
   },
   "main": "index.js",
-  "type": "module",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "dotenv": "^16.3.1",
