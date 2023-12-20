@@ -8,7 +8,7 @@
     "logs": "firebase functions:log",
     "hmr": "nodemon index.js",
     "nodemon": "npm run hmr",
-    "start": "node user_profile/user_profile_operations.js"
+    "start": "node methods/user_profile/user_profile_methods.js"
   },
   "engines": {
     "node": "18"

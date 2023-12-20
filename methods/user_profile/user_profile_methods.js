@@ -1,6 +1,6 @@
 require('express');
 const bcrypt = require('bcrypt')
-const con = require('../project_connections/database_connection')
+const con = require('../../project_connections/database_connection')
 const {generateToken} = require("./auth");
 
 let sql = "";
@@ -52,7 +52,7 @@ const RegisterNewAccount = async (req, res) => {
 };
 
 
-const User_profile_operations = async (req, res) => {
+const User_profile_methods = async (req, res) => {
         const {email, password} = req.body;
         sql = "SELECT PASS FROM UserPass WHERE Email= '" + email.toLowerCase() + "'"
         await con.query(sql, async (err, result) => {
@@ -85,4 +85,4 @@ const User_profile_operations = async (req, res) => {
 ;
 
 
-module.exports = {RegisterNewAccount, Login: User_profile_operations}
+module.exports = {RegisterNewAccount, Login: User_profile_methods}
