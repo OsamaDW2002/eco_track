@@ -6,5 +6,4 @@ const con = mysql.createConnection({
     database: "eco_track",
     port: 3306
 });
-con.connect()
 module.exports = con;

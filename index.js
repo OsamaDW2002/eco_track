@@ -3,12 +3,7 @@ const express=require('express')
 const session = require("express-session");
 const app=express()
 const router=require('./Router/user_profile')
-app.use(session({
-    secret: 'secret-key',
-    saveUninitialized:false,
-    resave: false,
-    cookie: { maxAge: 60 * 1000 }
-}));
+const {authenticateToken} = require("./user_profile/auth");
 app.use(express.json());
 app.use("/user_profile",router)
 

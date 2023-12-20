@@ -8,7 +8,7 @@
     "logs": "firebase functions:log",
     "hmr": "nodemon index.js",
     "nodemon": "npm run hmr",
-    "start": "node user_profile/login.js"
+    "start": "node user_profile/user_profile_operations.js"
   },
   "engines": {
     "node": "18"
@@ -22,6 +22,7 @@
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^4.3.1",
     "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.6.5",
     "nodemon": "^3.0.1",
