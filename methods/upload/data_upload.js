@@ -1,7 +1,8 @@
 const axios = require('axios');
 const con = require('../../project_connections/database_connection')
+const {findMaxKey} = require("./common_methods");
 const uploadData = async (req, res) => {
-    const {value, type, notes, collectionDate} = req.body;
+     const {value, type, notes, collectionDate} = req.body;
     if (!value || !type || !notes || !collectionDate) {
         res.send("Invalid Data")
     }
@@ -23,23 +24,7 @@ const uploadData = async (req, res) => {
     const sql = "INSERT INTO EnvData (Value,Type,Notes,CollectionDate,Concern,Source) VALUES (?, ?, ?, ?, ?, ?)"
     await con.query(sql,[value,type,notes,collectionDate,concern,user]);
     res.send("Data uploaded")
-}
-function findMaxKey(results) {
-    let maxKey = null;
-    let maxValue = null;
+ }
 
-    for (const key in results) {
-        if (results.hasOwnProperty(key)) {
-            const value = results[key];
-
-            if (maxValue === null || value > maxValue) {
-                maxValue = value;
-                maxKey = key;
-            }
-        }
-    }
-
-    return maxKey;
-}
 
 module.exports={uploadData}

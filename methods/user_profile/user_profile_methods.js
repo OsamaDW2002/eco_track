@@ -6,10 +6,9 @@ const {generateToken} = require("./auth");
 let sql = "";
 
 
-con.connect()
 
 const RegisterNewAccount = async (req, res) => {
-    const {Fname, Lname, Email, Password, Profession} = req.body;
+     const {Fname, Lname, Email, Password, Profession} = req.body;
     console.log(req.body)
     // Check if the user already exists
     console.log(Email.toLowerCase())
@@ -39,8 +38,7 @@ const RegisterNewAccount = async (req, res) => {
                                 throw err;
                             } else {
                                 res.status(201).send("Registration successful. You can now proceed.");
-                                con.end()
-                            }
+                             }
                         });
                     }
                 });
@@ -53,7 +51,7 @@ const RegisterNewAccount = async (req, res) => {
 
 
 const User_profile_methods = async (req, res) => {
-        const {email, password} = req.body;
+     const {email, password} = req.body;
         sql = "SELECT PASS FROM UserPass WHERE Email= '" + email.toLowerCase() + "'"
         await con.query(sql, async (err, result) => {
             if (err) {
@@ -74,8 +72,7 @@ const User_profile_methods = async (req, res) => {
                                 profession: result[0].Profession
                             })
                             res.send(token);
-                            con.end()
-                        })
+                         })
 
                     }
                 }
