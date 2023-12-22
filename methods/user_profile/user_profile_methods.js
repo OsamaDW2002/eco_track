@@ -46,7 +46,6 @@ const RegisterNewAccount = async (req, res) => {
         }
     });
 
-
 };
 
 
@@ -78,8 +77,7 @@ const User_profile_methods = async (req, res) => {
                 }
             }
         })
-    }
-;
+    };
 
 
 module.exports = {RegisterNewAccount, Login: User_profile_methods}
