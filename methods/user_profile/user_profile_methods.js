@@ -8,7 +8,7 @@ let sql = "";
 
 
 const registerNewAccount = async (req, res) => {
-     const {Fname, Lname, Email, Password, Profession} = req.body;
+    const {Fname, Lname, Email, Password, Profession} = req.body;
     console.log(req.body)
     // Check if the user already exists
     console.log(Email.toLowerCase())
@@ -38,7 +38,7 @@ const registerNewAccount = async (req, res) => {
                                 throw err;
                             } else {
                                 res.status(201).send("Registration successful. You can now proceed.");
-                             }
+                            }
                         });
                     }
                 });
@@ -50,34 +50,34 @@ const registerNewAccount = async (req, res) => {
 
 
 const login = async (req, res) => {
-     const {email, password} = req.body;
-        sql = "SELECT PASS FROM UserPass WHERE Email= '" + email.toLowerCase() + "'"
-        await con.query(sql, async (err, result) => {
-            if (err) {
-                throw err
+    const {email, password} = req.body;
+    sql = "SELECT PASS FROM UserPass WHERE Email= '" + email.toLowerCase() + "'"
+    await con.query(sql, async (err, result) => {
+        if (err) {
+            throw err
+        } else {
+            if (result.length === 0 || !result) {
+                res.send("User doesn't exist")
             } else {
-                if (result.length === 0 || !result) {
-                    res.send("User doesn't exist")
-                } else {
-                    console.log(result[0])
-                    if (await bcrypt.compare(password, result[0].PASS)) {
-                        sql = "SELECT *  FROM Profile WHERE Email = '" + email.toLowerCase() + "'";
-                        await con.query(sql, async (err, result) => {
-                            console.log(result[0])
-                            const token = generateToken({
-                                email: result[0].Email,
-                                first_name: result[0].FirstName,
-                                last_name: result[0].LastName,
-                                profession: result[0].Profession
-                            })
-                            res.send(token);
-                         })
+                console.log(result[0])
+                if (await bcrypt.compare(password, result[0].PASS)) {
+                    sql = "SELECT *  FROM Profile WHERE Email = '" + email.toLowerCase() + "'";
+                    await con.query(sql, async (err, result) => {
+                        console.log(result[0])
+                        const token = generateToken({
+                            email: result[0].Email,
+                            first_name: result[0].FirstName,
+                            last_name: result[0].LastName,
+                            profession: result[0].Profession
+                        })
+                        res.send(token);
+                    })
 
-                    }
                 }
             }
-        })
-    };
+        }
+    })
+};
 
 
 module.exports = {registerNewAccount,login}
