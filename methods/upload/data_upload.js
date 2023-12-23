@@ -1,16 +1,17 @@
 const axios = require('axios');
 const con = require('../../project_connections/database_connection');
-const { findMaxKey } = require("./common_methods");
-
+const {findMaxKey} = require("./common_methods");
+const {addPoints} = require("../score_sys/scoring");
+require('dotenv').config()
 const uploadData = async (req, res) => {
     try {
-        const { value, type, notes, collectionDate } = req.body;
+        const {value, type, notes, collectionDate} = req.body;
 
         if (!value || !type || !notes || !collectionDate) {
             return res.status(400).send("Invalid Data");
         }
 
-        const response = await axios.post("http://127.0.0.1:5000/match_percentage", {
+        const response = await axios.post( process.env.NLP_ENDPOINT, {
             "input_phrase": notes + " " + type,
             "matchers": {
                 "clean_energy": "Clean Energy",
@@ -32,7 +33,7 @@ const uploadData = async (req, res) => {
 
         const sql = "INSERT INTO EnvData (Value, Type, Notes, CollectionDate, Concern, Source) VALUES (?, ?, ?, ?, ?, ?)";
         await con.query(sql, [value, type, notes, collectionDate, concern, user]);
-
+        addPoints(user, 5)
         res.send("Data uploaded");
     } catch (error) {
         console.error("Error uploading data:", error);
@@ -40,4 +41,4 @@ const uploadData = async (req, res) => {
     }
 };
 
-module.exports = { uploadData };
+module.exports = {uploadData};

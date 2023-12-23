@@ -1,10 +1,10 @@
 const mysql = require("mysql");
-
+require('dotenv').config()
 const con = mysql.createConnection({
-    host: "host",
-    user: "name",
-    password:"*****",
-    database: "eco_track",
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password:process.env.DB_PASS,
+    database: process.env.DB,
     port: 3306
 });
 con.connect()

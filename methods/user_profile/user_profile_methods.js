@@ -2,6 +2,7 @@ require('express');
 const bcrypt = require('bcrypt')
 const con = require('../../project_connections/database_connection')
 const {generateToken} = require("./auth");
+const {loggingPoint} = require("../score_sys/scoring");
 
 let sql = "";
 
@@ -26,7 +27,7 @@ const registerNewAccount = async (req, res) => {
 
                 // Insert into Profile table
                 const insertProfileQuery = "INSERT INTO Profile (FirstName, LastName, Email, Profession, Score) VALUES (?, ?, ?, ?, ?)";
-                con.query(insertProfileQuery, [Fname, Lname, Email.toLowerCase(), Profession, 0], (err) => {
+                con.query(insertProfileQuery, [Fname, Lname, Email.toLowerCase(), Profession, 1], (err) => {
                     if (err) {
                         throw err;
                     } else {
@@ -70,6 +71,7 @@ const login = async (req, res) => {
                             last_name: result[0].LastName,
                             profession: result[0].Profession
                         })
+                        loggingPoint(email)
                         res.send(token);
                     })
 

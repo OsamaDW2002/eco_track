@@ -2,7 +2,8 @@ const axios = require('axios');
 const con = require('../../project_connections/database_connection');
 const { promisify } = require('util');
 const { findMaxKey } = require('./common_methods');
-
+const {addPoints} = require("../score_sys/scoring");
+require('dotenv').config()
 const queryAsync = promisify(con.query).bind(con);
 
 const uploadReport = async (req, res) => {
@@ -19,7 +20,7 @@ const uploadReport = async (req, res) => {
             return res.status(409).send('Report with the same title already exists');
         }
 
-        const response = await axios.post('http://127.0.0.1:5000/match_percentage', {
+        const response = await axios.post(process.env.NLP_ENDPOINT, {
             input_phrase: title + ' ' + text,
             matchers: {
                 clean_energy: 'Clean Energy',
@@ -42,7 +43,7 @@ const uploadReport = async (req, res) => {
         for (const datum of data) {
             await queryAsync(insertData, [datum, title.toLowerCase()]);
         }
-
+         addPoints(author, 10)
         return res.status(201).send('Report uploaded');
     } catch (error) {
         console.error('Error uploading report:', error);
