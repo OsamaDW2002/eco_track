@@ -1,8 +1,9 @@
 const axios = require('axios');
 const con = require('../../project_connections/database_connection');
 const { promisify } = require('util');
-const { findMaxKey } = require('./common_methods');
+const { findMaxKey } = require('../common_methods');
 const {addPoints} = require("../score_sys/scoring");
+const publishToPub = require("../alert/messaging_client");
 require('dotenv').config()
 const queryAsync = promisify(con.query).bind(con);
 
@@ -30,6 +31,7 @@ const uploadReport = async (req, res) => {
                 air_pollution: 'Air Pollution',
                 water_pollution: 'Water Pollution',
                 noise_pollution: 'Noise Pollution',
+                "forest_fire":"Forest Fire"
             },
         });
 
@@ -44,6 +46,8 @@ const uploadReport = async (req, res) => {
             await queryAsync(insertData, [datum, title.toLowerCase()]);
         }
          addPoints(author, 10)
+         const dataToPub = {"type": "report", "concern":concern, "owner": author,"location":location, "title":title, "value": text}
+         await publishToPub(dataToPub);
         return res.status(201).send('Report uploaded');
     } catch (error) {
         console.error('Error uploading report:', error);

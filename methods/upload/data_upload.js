@@ -1,7 +1,8 @@
 const axios = require('axios');
 const con = require('../../project_connections/database_connection');
-const {findMaxKey} = require("./common_methods");
+const {findMaxKey} = require("../common_methods");
 const {addPoints} = require("../score_sys/scoring");
+const publishToPub = require("../alert/messaging_client");
 require('dotenv').config()
 const uploadData = async (req, res) => {
     try {
@@ -34,6 +35,8 @@ const uploadData = async (req, res) => {
         const sql = "INSERT INTO EnvData (Value, Type, Notes, CollectionDate, Concern, Source) VALUES (?, ?, ?, ?, ?, ?)";
         await con.query(sql, [value, type, notes, collectionDate, concern, user]);
         addPoints(user, 5)
+        const dataToPub = {"type": "data", "concern":concern, "owner": user, "title": type, "value":value}
+        await publishToPub(dataToPub);
         res.send("Data uploaded");
     } catch (error) {
         console.error("Error uploading data:", error);
