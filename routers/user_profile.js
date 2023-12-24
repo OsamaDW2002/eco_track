@@ -1,6 +1,6 @@
 const {login, registerNewAccount} = require('../methods/user_profile/user_profile_methods.js');
 const {Router} = require("express");
-const {authenticateTokenHandler} = require("../methods/user_profile/auth");
+const {authenticateTokenHandler} = require("../methods/auth");
 const userProfileRouts = Router();
 
 

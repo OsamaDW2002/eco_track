@@ -1,15 +1,16 @@
 const axios = require('axios');
 const con = require('../../project_connections/database_connection');
-const { promisify } = require('util');
-const { findMaxKey } = require('../common_methods');
+const {promisify} = require('util');
+const {findMaxKey} = require('../common_methods');
 const {addPoints} = require("../score_sys/scoring");
 const publishToPub = require("../alert/messaging_client");
+const {db, admin} = require("../../project_connections/firebase_connection");
 require('dotenv').config()
 const queryAsync = promisify(con.query).bind(con);
 
 const uploadReport = async (req, res) => {
-     try {
-        const { title, text, location, issueDate, data } = req.body;
+    try {
+        const {title, text, location, issueDate, data} = req.body;
 
         if (!title || !text || !location || !issueDate || !data) {
             return res.status(400).send('Invalid Data');
@@ -31,7 +32,7 @@ const uploadReport = async (req, res) => {
                 air_pollution: 'Air Pollution',
                 water_pollution: 'Water Pollution',
                 noise_pollution: 'Noise Pollution',
-                "forest_fire":"Forest Fire"
+                "forest_fire": "Forest Fire"
             },
         });
 
@@ -45,9 +46,16 @@ const uploadReport = async (req, res) => {
         for (const datum of data) {
             await queryAsync(insertData, [datum, title.toLowerCase()]);
         }
-         addPoints(author, 10)
-         const dataToPub = {"type": "report", "concern":concern, "owner": author,"location":location, "title":title, "value": text}
-         await publishToPub(dataToPub);
+        addPoints(author, 10)
+        const dataToPub = {
+            "type": "report",
+            "concern": concern,
+            "owner": author,
+            "location": location,
+            "title": title,
+            "value": text
+        }
+        await publishToPub(dataToPub);
         return res.status(201).send('Report uploaded');
     } catch (error) {
         console.error('Error uploading report:', error);
@@ -56,4 +64,24 @@ const uploadReport = async (req, res) => {
     }
 };
 
-module.exports = { uploadReport };
+const removeReport = async (req, res) => {
+    let title = req.params.title
+    console.log(title)
+
+    if (!title)
+        return res.status(400).send("Invalid Data");
+    let sql = "SELECT * FROM Report WHERE (Title = ?)"
+    await con.query(sql, [title.toLowerCase()], async (err, result) => {
+        console.log(result)
+        if (result.length === 0 || result[0].Author !== req.user.email.toLowerCase())
+            return res.status(400).send("No such report or you don't own this report");
+
+        sql = 'DELETE FROM Report WHERE (Title =? AND Author = ?)'
+        await con.query(sql, [title.toLowerCase(), req.user.email.toLowerCase()])
+        sql = 'DELETE FROM ReportData WHERE (Report = ? )'
+        await con.query(sql, [title])
+        return res.send(`Removed report ${title}`)
+    })
+}
+
+module.exports = {uploadReport, removeReport};
