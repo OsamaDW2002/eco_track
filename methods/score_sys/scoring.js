@@ -53,7 +53,7 @@ function loggingPoint(email){
 }
 
 function addPoints(email , pointNum){
-    // check if there's a time before or not
+
     const userScore = "SELECT Score FROM Profile WHERE Email = ?";
 
     con.query(userScore,[email.toLowerCase()],async(err,results)=>{
@@ -61,7 +61,7 @@ function addPoints(email , pointNum){
         if(results[0]){
             let Score =parseInt(results[0].Score);
             Score+=pointNum;
-            console.log(email + " s   s" + Score);
+            //console.log(email + " s   s" + Score);
             EditScore(email,Score);
             console.log("add point successfully");
         }
