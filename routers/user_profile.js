@@ -7,10 +7,8 @@ const userProfileRouts = Router();
 
 
 userProfileRouts.post('/register',registerNewAccount);
-userProfileRouts.get('/search/users',scoreboard);
-userProfileRouts.get('/search/specificuser/:email', findSpecificUser);
+userProfileRouts.get('/scoreboard',authenticateTokenHandler,scoreboard);
+userProfileRouts.get('/search/:email',authenticateTokenHandler, findSpecificUser);
 userProfileRouts.post('/login', login);
-userProfileRouts.get('/signed_test',authenticateTokenHandler,(req, res) => {
-    res.send(`Hello, ${req.user.email}! This is a protected route.`);
-})
+
 module.exports = userProfileRouts

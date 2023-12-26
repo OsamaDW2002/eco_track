@@ -1,10 +1,9 @@
-const axios = require('axios');
+require('axios');
 const con = require('../../project_connections/database_connection');
 const {promisify} = require('util');
-const {findMaxKey} = require('../common_methods');
-const {addPoints} = require("../score_sys/scoring");
+const {addPoints} = require("../scoring_system/scoring");
 const publishToPub = require("../alert/messaging_client");
-const {db, admin} = require("../../project_connections/firebase_connection");
+ const {matchNLP} = require("../common_methods");
 require('dotenv').config()
 const queryAsync = promisify(con.query).bind(con);
 
@@ -22,21 +21,8 @@ const uploadReport = async (req, res) => {
             return res.status(409).send('Report with the same title already exists');
         }
 
-        const response = await axios.post(process.env.NLP_ENDPOINT, {
-            input_phrase: title + ' ' + text,
-            matchers: {
-                clean_energy: 'Clean Energy',
-                global_warming: 'Global Warming',
-                deforestation: 'Deforestation',
-                extinction: 'Extinction',
-                air_pollution: 'Air Pollution',
-                water_pollution: 'Water Pollution',
-                noise_pollution: 'Noise Pollution',
-                "forest_fire": "Forest Fire"
-            },
-        });
 
-        const concern = findMaxKey(response.data.results);
+        const concern = await matchNLP(title + ' ' + text);
         const author = req.user.email;
 
         await queryAsync('INSERT INTO Report (Title, Text, Author, Location, IssueDate, Concern) VALUES (?, ?, ?, ?, ?, ?)',

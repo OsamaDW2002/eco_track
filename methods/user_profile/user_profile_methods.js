@@ -2,7 +2,7 @@ require('express');
 const bcrypt = require('bcrypt')
 const con = require('../../project_connections/database_connection')
 const {generateToken} = require("../auth");
-const {loggingPoint} = require("../score_sys/scoring");
+const {loggingPoint} = require("../scoring_system/scoring");
 
 let sql = "";
 
