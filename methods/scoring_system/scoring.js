@@ -18,8 +18,7 @@ function  AddNewTime(email , currentTime){
     });
 }
 function loggingPoint(email){
-    // check if there's a time before or not
-    const checkTime = "SELECT Score,LogTime FROM Profile WHERE Email = ?";
+     const checkTime = "SELECT Score,LogTime FROM Profile WHERE Email = ?";
 
     con.query(checkTime,[email.toLowerCase()],async(err,results)=>{
       try {
@@ -30,8 +29,7 @@ function loggingPoint(email){
                   const currentTime = moment();
                   const diffInMilliseconds = Math.abs(currentTime.diff(lastTime));
 
-                  // Convert milliseconds to hours
-                  const diffInHours = moment.duration(diffInMilliseconds).asHours();
+                   const diffInHours = moment.duration(diffInMilliseconds).asHours();
 
                   console.log(diffInHours); // Output the difference in hours
 
@@ -61,8 +59,7 @@ function addPoints(email , pointNum){
         if(results[0]){
             let Score =parseInt(results[0].Score);
             Score+=pointNum;
-            //console.log(email + " s   s" + Score);
-            EditScore(email,Score);
+             EditScore(email,Score);
             console.log("add point successfully");
         }
         else {

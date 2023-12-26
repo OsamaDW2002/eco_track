@@ -1,11 +1,26 @@
-require('axios');
 const con = require('../../project_connections/database_connection');
-const {promisify} = require('util');
 const {addPoints} = require("../scoring_system/scoring");
 const publishToPub = require("../alert/messaging_client");
- const {matchNLP} = require("../common_methods");
-require('dotenv').config()
-const queryAsync = promisify(con.query).bind(con);
+const {matchNLP} = require("../common_methods");
+require('dotenv').config();
+const queryAsync = async (sql, params) => {
+    return new Promise((resolve, reject) => {
+        con.query(sql, params, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
+    });
+};
+
+const reportExists = async (title, author) => {
+    const [existingReport] = await queryAsync('SELECT * FROM Report WHERE Title = ?', [title.toLowerCase()]);
+    console.log(existingReport); // Add this line to log the object
+    return existingReport && existingReport.Author === author.toLowerCase();
+};
+
 
 const uploadReport = async (req, res) => {
     try {
@@ -15,12 +30,9 @@ const uploadReport = async (req, res) => {
             return res.status(400).send('Invalid Data');
         }
 
-        const [existingReport] = await queryAsync('SELECT Title FROM Report WHERE Title = ?', [title.toLowerCase()]);
-
-        if (existingReport) {
+        if (await reportExists(title, req.user.email)) {
             return res.status(409).send('Report with the same title already exists');
         }
-
 
         const concern = await matchNLP(title + ' ' + text);
         const author = req.user.email;
@@ -32,7 +44,8 @@ const uploadReport = async (req, res) => {
         for (const datum of data) {
             await queryAsync(insertData, [datum, title.toLowerCase()]);
         }
-        addPoints(author, 10)
+        addPoints(author, 10);
+
         const dataToPub = {
             "type": "report",
             "concern": concern,
@@ -40,34 +53,83 @@ const uploadReport = async (req, res) => {
             "location": location,
             "title": title,
             "value": text
-        }
+        };
         await publishToPub(dataToPub);
+
         return res.status(201).send('Report uploaded');
     } catch (error) {
         console.error('Error uploading report:', error);
         return res.status(500).send('Internal Server Error');
-    } finally {
     }
 };
 
 const removeReport = async (req, res) => {
-    let title = req.params.title
-    console.log(title)
+    try {
+        const title = req.params.title;
 
-    if (!title)
-        return res.status(400).send("Invalid Data");
-    let sql = "SELECT * FROM Report WHERE (Title = ?)"
-    await con.query(sql, [title.toLowerCase()], async (err, result) => {
-        console.log(result)
-        if (result.length === 0 || result[0].Author !== req.user.email.toLowerCase())
+        if (!title) {
+            return res.status(400).send("Invalid Data");
+        }
+
+        if (!(await reportExists(title, req.user.email))) {
             return res.status(400).send("No such report or you don't own this report");
+        }
 
-        sql = 'DELETE FROM Report WHERE (Title =? AND Author = ?)'
-        await con.query(sql, [title.toLowerCase(), req.user.email.toLowerCase()])
-        sql = 'DELETE FROM ReportData WHERE (Report = ? )'
-        await con.query(sql, [title])
-        return res.send(`Removed report ${title}`)
-    })
-}
+        await queryAsync('DELETE FROM Report WHERE (Title =? AND Author = ?)', [title.toLowerCase(), req.user.email.toLowerCase()]);
+        await queryAsync('DELETE FROM ReportData WHERE (Report = ? )', [title]);
 
-module.exports = {uploadReport, removeReport};
+        return res.send(`Removed report ${title}`);
+    } catch (error) {
+        console.error('Error removing report:', error);
+        return res.status(500).send('Internal Server Error');
+    }
+};
+
+const updateReport = async (req, res) => {
+    try {
+        const {oldTitle, newTitle, newText, data} = req.body;
+
+        if (!oldTitle || (!newTitle && !newText && !data)) {
+            return res.status(400).send('Invalid Data. Please provide both oldTitle and at least one of newTitle, newText, or data to update.');
+        }
+
+        const existingReport = await reportExists(oldTitle, req.user.email)
+console.log(existingReport)
+        if (!existingReport) {
+            return res.status(403).send('Report not found or you are not authorized to update this report');
+        }
+
+
+        const updateOperations = [];
+
+        if (newTitle && newTitle.toLowerCase() !== oldTitle.toLowerCase()) {
+            if (await reportExists(newTitle, req.user.email)) {
+                return res.status(409).send('Title already exists for another user. Choose a different title.');
+            }
+
+            updateOperations.push(queryAsync('UPDATE Report SET Title = ? WHERE Title = ?', [newTitle.toLowerCase(), oldTitle.toLowerCase()]));
+        }
+
+        if (newText) {
+            updateOperations.push(queryAsync('UPDATE Report SET Text = ? WHERE Title = ?', [newText, oldTitle.toLowerCase()]));
+        }
+
+        if (data) {
+             updateOperations.push(queryAsync('DELETE FROM ReportData WHERE Report = ?', [oldTitle.toLowerCase()]));
+
+             const insertData = 'INSERT INTO ReportData (Data, Report) VALUES (?, ?)';
+            for (const datum of data) {
+                updateOperations.push(queryAsync(insertData, [datum, newTitle ? newTitle.toLowerCase() : oldTitle.toLowerCase()]));
+            }
+        }
+
+        await Promise.all(updateOperations);
+
+        return res.status(200).send('Report updated successfully');
+    } catch (error) {
+        console.error('Error updating report:', error);
+        return res.status(500).send('Internal Server Error');
+    }
+};
+
+module.exports = {uploadReport, removeReport, updateReport};

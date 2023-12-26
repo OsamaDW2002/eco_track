@@ -1,25 +1,25 @@
-const {login, registerNewAccount} = require('../methods/user_profile/user_profile_methods.js');
-const {Router} = require("express");
-const {authenticateTokenHandler} = require("../methods/auth");
-const {top5Concerns} = require("../methods/user_profile/searching_about/concerns");
-const {scoreboard, findSpecificUser} = require("../methods/user_profile/searching_about/other_users");
-const {getAllReports, getSpecificReport} = require("../methods/user_profile/searching_about/reports");
-const {getAllResources, getSpecificResource} = require("../methods/user_profile/searching_about/resources");
+const { Router } = require("express");
+const { login, registerNewAccount, updateProfile, updatePassword, addConcern } = require('../methods/user_profile/user_profile_methods.js');
+const { authenticateTokenHandler } = require("../methods/auth");
+const {scoreboard, findSpecificUser} = require("../methods/user_profile/other_users");
+
 const userProfileRouts = Router();
 
+// User registration
+userProfileRouts.post('/register', registerNewAccount);
 
-userProfileRouts.post('/register',registerNewAccount);
+// User login
 userProfileRouts.post('/login', login);
 
-userProfileRouts.get('/search/scoreboard',authenticateTokenHandler,scoreboard);
-userProfileRouts.get('/search/:email',authenticateTokenHandler, findSpecificUser);
+// Update user profile
+userProfileRouts.patch('/updateProfile', authenticateTokenHandler, updateProfile);
 
-userProfileRouts.get('/search/concerns',authenticateTokenHandler,top5Concerns);
+// Update user password
+userProfileRouts.patch('/updatePassword', authenticateTokenHandler, updatePassword);
 
-userProfileRouts.get('/search/reports',authenticateTokenHandler,getAllReports);
-userProfileRouts.get('/search/reports/:title',authenticateTokenHandler, getSpecificReport);
+// Add user concern
+userProfileRouts.patch('/addConcern/:newConcern', authenticateTokenHandler, addConcern);
 
-userProfileRouts.get('/search/resource',authenticateTokenHandler,getAllResources);
-userProfileRouts.get('/search/resource/:email',authenticateTokenHandler, getSpecificResource);
-
-module.exports = userProfileRouts
+userProfileRouts.get("/scoreboard",authenticateTokenHandler,scoreboard)
+userProfileRouts.get("/:email",authenticateTokenHandler,findSpecificUser)
+module.exports = userProfileRouts;
