@@ -1,7 +1,6 @@
-require('express');
 const bcrypt = require('bcrypt')
  const {generateToken} = require("../auth");
-const {loggingPoint} = require("../scoring_system/scoring");
+const {addDailyPoint} = require("../scoring_system/scoring");
 const {queryAsync} = require("../common_methods");
 
 const registerNewAccount = async (req, res) => {
@@ -54,7 +53,7 @@ const login = async (req, res) => {
                     profession: userResult[0].Profession,
                 });
 
-                loggingPoint(email);
+                addDailyPoint(email);
                 return res.send(token);
             }
         }
@@ -104,7 +103,7 @@ const updateProfile = async (req, res) => {
             }
 
              if (Array.isArray(newUserConcerns)) {
-                const updateConcernsQuery = "UPDATE UserConcern SET Concern=? WHERE Email=?";
+                const updateConcernsQuery = "UPDATE UserConcern SET Concern=? WHERE User=?";
 
                 for (let index = 0; index < newUserConcerns.length; index++) {
                     const concern = newUserConcerns[index];
@@ -156,17 +155,24 @@ const updatePassword = async (req, res) => {
 
 const addConcern = async (req, res) => {
     try {
-        const email = req.user.email; // Extract email from req.user
-        const newConcern = req.params.concern; // Extract newConcern from req.params
+        const email = req.user.email;
+        const newConcern = req.params.concern;
 
-         const checkExistingConcernQuery = "SELECT * FROM UserConcern WHERE User = ? AND Concern = ?";
-        const checkResult = await queryAsync(checkExistingConcernQuery, [email.toLowerCase(), newConcern]);
+        const checkExistingGlobalConcernQuery = "SELECT * FROM Concerns WHERE Concern = ?";
+        const checkGlobalResult = await queryAsync(checkExistingGlobalConcernQuery, [newConcern.toLowerCase()]);
 
-        if (checkResult.length > 0) {
-             return res.status(400).send("Concern already exists for the user");
+        if (checkGlobalResult.length === 0) {
+            return res.status(400).send("Concern does not exist globally. Please add the concern globally first.");
         }
 
-         const addConcernQuery = "INSERT INTO UserConcern (User, Concern) VALUES (?, ?)";
+        const checkExistingUserConcernQuery = "SELECT * FROM UserConcern WHERE User = ? AND Concern = ?";
+        const checkUserResult = await queryAsync(checkExistingUserConcernQuery, [email.toLowerCase(), newConcern]);
+
+        if (checkUserResult.length > 0) {
+            return res.status(400).send("Concern already exists for the user");
+        }
+
+        const addConcernQuery = "INSERT INTO UserConcern (User, Concern) VALUES (?, ?)";
         await queryAsync(addConcernQuery, [email.toLowerCase(), newConcern]);
 
         return res.status(200).send("Concern added successfully");

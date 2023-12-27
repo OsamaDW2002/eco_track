@@ -4,5 +4,5 @@ const addConcern = require("../methods/concerns/add_concern");
 
 const concernRouts = Router()
 
-concernRouts.get("/add/:concern", authenticateTokenHandler, addConcern)
+concernRouts.post("/add/:concern", authenticateTokenHandler, addConcern)
  module.exports = concernRouts

@@ -18,7 +18,7 @@ userProfileRouts.patch('/update', authenticateTokenHandler, updateProfile);
 userProfileRouts.patch('/update_password', authenticateTokenHandler, updatePassword);
 
 // Add user concern
-userProfileRouts.patch('/add_concern/:concern', authenticateTokenHandler, addConcern);
+userProfileRouts.post('/add_concern/:concern', authenticateTokenHandler, addConcern);
 
 userProfileRouts.get("/scoreboard",authenticateTokenHandler,scoreboard)
 userProfileRouts.get("/:email",authenticateTokenHandler,findSpecificUser)
