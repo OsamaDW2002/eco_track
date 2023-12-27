@@ -1,18 +1,5 @@
-const con = require("../../project_connections/database_connection");
+ const { matchNLP, queryAsync} = require("../common_methods");
 
-const { matchNLP } = require("../common_methods");
-
-const queryAsync = async (sql, params) => {
-    return new Promise((resolve, reject) => {
-        con.query(sql, params, (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-};
 
 const uploadResource = async (req, res) => {
     try {
@@ -63,7 +50,7 @@ const removeResource = async (req, res) => {
 
 const updateResource = async (req, res) => {
     try {
-        const { currentUrl, newName, newUrl } = req.body;
+        const { current_url:currentUrl, new_name:newName, new_url:newUrl } = req.body;
 
         if (!currentUrl || (!newName && !newUrl)) {
             return res.status(400).send("Invalid Data");

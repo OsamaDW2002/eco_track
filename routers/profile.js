@@ -1,7 +1,7 @@
 const { Router } = require("express");
-const { login, registerNewAccount, updateProfile, updatePassword, addConcern } = require('../methods/user_profile/user_profile_methods.js');
+const { login, registerNewAccount, updateProfile, updatePassword, addConcern } = require('../methods/user_profile/profile_curd.js');
 const { authenticateTokenHandler } = require("../methods/auth");
-const {scoreboard, findSpecificUser} = require("../methods/user_profile/other_users");
+const {scoreboard, findSpecificUser} = require("../methods/user_profile/search_useres");
 
 const userProfileRouts = Router();
 
@@ -12,13 +12,13 @@ userProfileRouts.post('/register', registerNewAccount);
 userProfileRouts.post('/login', login);
 
 // Update user profile
-userProfileRouts.patch('/updateProfile', authenticateTokenHandler, updateProfile);
+userProfileRouts.patch('/update', authenticateTokenHandler, updateProfile);
 
 // Update user password
-userProfileRouts.patch('/updatePassword', authenticateTokenHandler, updatePassword);
+userProfileRouts.patch('/update_password', authenticateTokenHandler, updatePassword);
 
 // Add user concern
-userProfileRouts.patch('/addConcern/:newConcern', authenticateTokenHandler, addConcern);
+userProfileRouts.post('/add_concern/:concern', authenticateTokenHandler, addConcern);
 
 userProfileRouts.get("/scoreboard",authenticateTokenHandler,scoreboard)
 userProfileRouts.get("/:email",authenticateTokenHandler,findSpecificUser)

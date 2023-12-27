@@ -1,16 +1,5 @@
-const con = require('../../../project_connections/database_connection');
+ const {queryAsync} = require("../../common_methods");
 
-const queryAsync = async (sql, params) => {
-    return new Promise((resolve, reject) => {
-        con.query(sql, params, (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results);
-            }
-        });
-    });
-};
 
 const getAllReports = async (req, res) => {
     try {

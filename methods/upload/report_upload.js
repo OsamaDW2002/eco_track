@@ -1,19 +1,8 @@
-const con = require('../../project_connections/database_connection');
-const {addPoints} = require("../scoring_system/scoring");
+ const {addPoints} = require("../scoring_system/scoring");
 const publishToPub = require("../alert/messaging_client");
-const {matchNLP} = require("../common_methods");
+const {matchNLP, queryAsync} = require("../common_methods");
 require('dotenv').config();
-const queryAsync = async (sql, params) => {
-    return new Promise((resolve, reject) => {
-        con.query(sql, params, (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-};
+
 
 const reportExists = async (title, author) => {
     const [existingReport] = await queryAsync('SELECT * FROM Report WHERE Title = ?', [title.toLowerCase()]);
@@ -24,7 +13,7 @@ const reportExists = async (title, author) => {
 
 const uploadReport = async (req, res) => {
     try {
-        const {title, text, location, issueDate, data} = req.body;
+        const {title, text, location, issue_date:issueDate, data} = req.body;
 
         if (!title || !text || !location || !issueDate || !data) {
             return res.status(400).send('Invalid Data');
@@ -87,7 +76,7 @@ const removeReport = async (req, res) => {
 
 const updateReport = async (req, res) => {
     try {
-        const {oldTitle, newTitle, newText, data} = req.body;
+        const {old_title:oldTitle, new_title:newTitle, new_text:newText, data} = req.body;
 
         if (!oldTitle || (!newTitle && !newText && !data)) {
             return res.status(400).send('Invalid Data. Please provide both oldTitle and at least one of newTitle, newText, or data to update.');

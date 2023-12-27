@@ -1,24 +1,12 @@
-const con = require('../../project_connections/database_connection');
-const { addPoints } = require("../scoring_system/scoring");
+ const { addPoints } = require("../scoring_system/scoring");
 const publishToPub = require("../alert/messaging_client");
-const { matchNLP } = require("../common_methods");
+const { matchNLP, queryAsync} = require("../common_methods");
 require('dotenv').config();
 
-const queryAsync = async (sql, params) => {
-    return new Promise((resolve, reject) => {
-        con.query(sql, params, (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-};
 
 const uploadData = async (req, res) => {
     try {
-        const { value, type, notes, collectionDate } = req.body;
+        const { value, type, notes, collection_date:collectionDate } = req.body;
 
         if (!value || !type || !notes || !collectionDate) {
             return res.status(400).send("Invalid Data");

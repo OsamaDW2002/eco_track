@@ -10,7 +10,7 @@ const {getDataById, getDataByConcern} = require("../methods/upload/searching_abo
 const uploadRoutes = Router();
 
 uploadRoutes.post('/data', authenticateTokenHandler, uploadData);
-uploadRoutes.delete('/data/remove/:id', authenticateTokenHandler, removeData);
+uploadRoutes.delete('/data/:id', authenticateTokenHandler, removeData);
 uploadRoutes.get("/data/:id", authenticateTokenHandler, getDataById);
 uploadRoutes.get("/data/concern/:concern", authenticateTokenHandler, getDataByConcern);
 

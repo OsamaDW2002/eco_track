@@ -1,37 +1,26 @@
-require('express');
 const bcrypt = require('bcrypt')
-const con = require('../../project_connections/database_connection')
-const {generateToken} = require("../auth");
-const {loggingPoint} = require("../scoring_system/scoring");
-const queryAsync = async (sql, params) => {
-    return new Promise((resolve, reject) => {
-        con.query(sql, params, (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-};
+ const {generateToken} = require("../auth");
+const {addDailyPoint} = require("../scoring_system/scoring");
+const {queryAsync} = require("../common_methods");
+
 const registerNewAccount = async (req, res) => {
     try {
-        const {Fname, Lname, Email, Password, Profession} = req.body;
+        const {first_name: firstName, last_name:lastName, email, password, profession} = req.body;
 
          const existingUserQuery = "SELECT Email FROM Profile WHERE Email = ?";
-        const result = await queryAsync(existingUserQuery, [Email.toLowerCase()]);
+        const result = await queryAsync(existingUserQuery, [email.toLowerCase()]);
 
         if (result.length) {
             return res.status(400).send("Email already exists");
         }
 
-         const hashPass = await bcrypt.hash(Password, 10);
+         const hashPass = await bcrypt.hash(password, 10);
 
          const insertProfileQuery = "INSERT INTO Profile (FirstName, LastName, Email, Profession, Score) VALUES (?, ?, ?, ?, ?)";
-        await queryAsync(insertProfileQuery, [Fname, Lname, Email.toLowerCase(), Profession, 1]);
+        await queryAsync(insertProfileQuery, [firstName, lastName, email.toLowerCase(), profession, 1]);
 
          const insertUserPassQuery = "INSERT INTO UserPass (Email, Pass) VALUES (?, ?)";
-        await queryAsync(insertUserPassQuery, [Email.toLowerCase(), hashPass]);
+        await queryAsync(insertUserPassQuery, [email.toLowerCase(), hashPass]);
 
         return res.status(201).send("Registration successful. You can now proceed.");
     } catch (error) {
@@ -64,7 +53,7 @@ const login = async (req, res) => {
                     profession: userResult[0].Profession,
                 });
 
-                loggingPoint(email);
+                addDailyPoint(email);
                 return res.send(token);
             }
         }
@@ -79,7 +68,7 @@ const login = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { newFirstName, newLastName, newProfession, newUserConcerns } = req.body;
+        const { new_first_name:newFirstName, new_last_name:newLastName, new_profession:newProfession, new_user_concern:newUserConcerns } = req.body;
         const currentEmail = req.user.email;
 
         let status = 200;
@@ -114,7 +103,7 @@ const updateProfile = async (req, res) => {
             }
 
              if (Array.isArray(newUserConcerns)) {
-                const updateConcernsQuery = "UPDATE UserConcern SET Concern=? WHERE Email=?";
+                const updateConcernsQuery = "UPDATE UserConcern SET Concern=? WHERE User=?";
 
                 for (let index = 0; index < newUserConcerns.length; index++) {
                     const concern = newUserConcerns[index];
@@ -126,7 +115,7 @@ const updateProfile = async (req, res) => {
             }
         }
 
-        return res.send(message);
+        return res.status(status).send(message);
     } catch (error) {
         console.error("Error during profile update:", error);
         return res.status(500).send("Internal Server Error");
@@ -136,7 +125,7 @@ const updateProfile = async (req, res) => {
 
 const updatePassword = async (req, res) => {
     try {
-        const {currentPassword, newPassword} = req.body;
+        const {current_password:currentPassword, new_password:newPassword} = req.body;
         const email = req.user.email;
 
          const currentPasswordQuery = "SELECT Pass FROM UserPass WHERE Email=?";
@@ -166,17 +155,24 @@ const updatePassword = async (req, res) => {
 
 const addConcern = async (req, res) => {
     try {
-        const email = req.user.email; // Extract email from req.user
-        const newConcern = req.params.newConcern; // Extract newConcern from req.params
+        const email = req.user.email;
+        const newConcern = req.params.concern;
 
-         const checkExistingConcernQuery = "SELECT * FROM UserConcern WHERE User = ? AND Concern = ?";
-        const checkResult = await queryAsync(checkExistingConcernQuery, [email.toLowerCase(), newConcern]);
+        const checkExistingGlobalConcernQuery = "SELECT * FROM Concerns WHERE Concern = ?";
+        const checkGlobalResult = await queryAsync(checkExistingGlobalConcernQuery, [newConcern.toLowerCase()]);
 
-        if (checkResult.length > 0) {
-             return res.status(400).send("Concern already exists for the user");
+        if (checkGlobalResult.length === 0) {
+            return res.status(400).send("Concern does not exist globally. Please add the concern globally first.");
         }
 
-         const addConcernQuery = "INSERT INTO UserConcern (User, Concern) VALUES (?, ?)";
+        const checkExistingUserConcernQuery = "SELECT * FROM UserConcern WHERE User = ? AND Concern = ?";
+        const checkUserResult = await queryAsync(checkExistingUserConcernQuery, [email.toLowerCase(), newConcern]);
+
+        if (checkUserResult.length > 0) {
+            return res.status(400).send("Concern already exists for the user");
+        }
+
+        const addConcernQuery = "INSERT INTO UserConcern (User, Concern) VALUES (?, ?)";
         await queryAsync(addConcernQuery, [email.toLowerCase(), newConcern]);
 
         return res.status(200).send("Concern added successfully");
@@ -185,5 +181,32 @@ const addConcern = async (req, res) => {
         return res.status(500).send("Internal Server Error");
     }
 };
-module.exports = {registerNewAccount, login, updateProfile, updatePassword, addConcern};
+
+const deleteProfile = async (req, res) => {
+    try {
+        const email = req.user.email; // Extract email from req.user
+
+        const checkExistingUserQuery = "SELECT * FROM Profile WHERE Email = ?";
+        const checkResult = await queryAsync(checkExistingUserQuery, [email.toLowerCase()]);
+
+        if (checkResult.length === 0) {
+            return res.status(404).send("User not found");
+        }
+
+        if (checkResult[0].Deleted === 1) {
+            return res.status(200).send("Profile is already deleted");
+        }
+
+        const deleteProfileQuery = "UPDATE Profile SET Deleted = 1 WHERE Email = ?";
+        await queryAsync(deleteProfileQuery, [email.toLowerCase()]);
+
+        return res.status(200).send("Profile deleted successfully");
+    } catch (error) {
+        console.error("Error deleting profile:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+};
+
+module.exports = { registerNewAccount, login, updateProfile, updatePassword, addConcern, deleteProfile };
+
 
