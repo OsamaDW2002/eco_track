@@ -13,7 +13,7 @@ uploadRoutes.post('/data', authenticateTokenHandler, uploadData);
 uploadRoutes.delete('/data/:id', authenticateTokenHandler, removeData);
 uploadRoutes.get("/data/:id", authenticateTokenHandler, getDataById);
 uploadRoutes.get("/data/concern/:concern", authenticateTokenHandler, getDataByConcern);
-uploadRoutes.get("/data/search",authenticateTokenHandler,searchDataByTextOrLocation)
+uploadRoutes.get("/search/data/",authenticateTokenHandler,searchDataByTextOrLocation)
 uploadRoutes.post("/reports", authenticateTokenHandler, uploadReport);
 uploadRoutes.delete("/reports/:title", authenticateTokenHandler, removeReport);
 uploadRoutes.patch("/reports", authenticateTokenHandler, updateReport);
@@ -25,7 +25,7 @@ uploadRoutes.patch("/resources", authenticateTokenHandler, updateResource);
 uploadRoutes.get("/reports", authenticateTokenHandler, getAllReports);
 uploadRoutes.get("/reports/:title", authenticateTokenHandler, getSpecificReport);
 uploadRoutes.get("/reports/concern/:concern", authenticateTokenHandler, getReportsByConcern);
-uploadRoutes.get("/reports/search/",authenticateTokenHandler,searchReportsByTextOrLocation)
+uploadRoutes.get("/search/report/",authenticateTokenHandler,searchReportsByTextOrLocation)
 ///
 uploadRoutes.get("/resources", authenticateTokenHandler, getAllResources);
 uploadRoutes.get("/resources/:name", authenticateTokenHandler, getSpecificResource);

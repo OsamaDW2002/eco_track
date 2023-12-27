@@ -33,9 +33,9 @@ const registerNewAccount = async (req, res) => {
 const login = async (req, res) => {
     try {
         const {email, password} = req.body;
-        const deletedQuery = "SELECT DELETED FROM PROFILE WHERE EMAIL =?"
-        const isDeleted = await queryAsync(deletedQuery, req.user.email)
-        if (isDeleted === 1)
+        const deletedQuery = "SELECT * FROM Profile WHERE EMAIL =?"
+        const isDeleted = await queryAsync(deletedQuery, email)
+        if (isDeleted[0].Deleted === 1)
             return res.status(404).send("User doesn't exist");
 
         const sql = "SELECT PASS FROM UserPass WHERE Email = ?";

@@ -14,4 +14,5 @@ app.use("/profile", userProfileRoutes)
 app.use("/uploads", uploadRoutes)
 app.use("/alerts", alertRouts)
 app.use("/concerns", concernRouts)
-  exports.eco_track=functions.https.onRequest({region:'me-west1',maxInstances:10},app)
+
+   exports.eco_track=functions.https.onRequest({region:'me-west1',maxInstances:10},app)

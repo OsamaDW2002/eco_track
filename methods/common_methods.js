@@ -74,13 +74,22 @@ async function matchNLPSet(phrase) {
                     matchers: matchers,
                 });
 
-                 const filteredResults = response.data.results.filter(result => result.value >= 25);
+                // Log the structure of the response
+                console.log('Response Structure:', response.data);
 
-                 const concernsArray = filteredResults.map(result => snakeToTitle(result.matcher).toLowerCase());
-
-                resolve(concernsArray);
+                // Check if response.data.results is an array with a filter function
+                if (Array.isArray(response.data.results) && typeof response.data.results.filter === 'function') {
+                    const filteredResults = response.data.results.filter(result => result.value >= 30);
+                    const concernsArray = filteredResults.map(result => snakeToTitle(result.matcher).toLowerCase());
+                    resolve(concernsArray);
+                } else {
+                    // If the structure is unexpected, resolve with an empty array or handle accordingly
+                    console.error('Unexpected response structure:', response.data);
+                    resolve([]);
+                }
             } else {
-                 resolve([]);
+                // If no concerns with count >= 30 are found, resolve with a default concern or handle accordingly
+                resolve(['DefaultConcern']);
             }
         });
     });

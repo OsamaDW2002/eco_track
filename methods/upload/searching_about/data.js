@@ -69,6 +69,7 @@ const searchDataByTextOrLocation = async (req, res) => {
     try {
         const searchText = req.query.text;
         const searchLocation = req.query.location;
+        console.log(searchText)
 
          if (!searchText && !searchLocation) {
             return res.status(400).send('Invalid Data. Please provide text or location to search.');
