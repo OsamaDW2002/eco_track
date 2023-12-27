@@ -1,6 +1,5 @@
 const axios = require("axios");
 const con = require("../project_connections/database_connection");
-const {resolve} = require("path");
 
 function findMaxKey(results) {
     let maxKey = null;
@@ -79,4 +78,30 @@ function snakeToTitle(str) {
     });
 }
 
-module.exports={matchNLP,generateRandomString,snakeCase,getKeyForValueGreaterThanPointFour,snakeToTitle}
+function merge(results) {
+    const consolidatedData = results.reduce((acc, obj) => {
+        const key = `${obj.FirstName}_${obj.LastName}`;
+        if (!acc[key]) {
+            acc[key] = { ...obj, Concerns: [obj.Concern] };
+        } else {
+            acc[key].Concerns.push(obj.Concern);
+        }
+        delete acc[key].Concern;
+        return acc;
+    }, {});
+    return Object.values(consolidatedData);
+}
+
+const queryAsync = async (sql, params) => {
+    return new Promise((resolve, reject) => {
+        con.query(sql, params, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(result);
+            }
+        });
+    });
+};
+
+module.exports={matchNLP,generateRandomString,snakeCase,getKeyForValueGreaterThanPointFour,snakeToTitle,merge,queryAsync}

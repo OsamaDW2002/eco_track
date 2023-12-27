@@ -1,31 +1,8 @@
-const express = require('express');
-const con = require('../../project_connections/database_connection');
 
-const queryAsync = async (sql, params) => {
-    return new Promise((resolve, reject) => {
-        con.query(sql, params, (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-};
+const {merge, queryAsync} = require("../common_methods");
 
-function merge(results) {
-    const consolidatedData = results.reduce((acc, obj) => {
-        const key = `${obj.FirstName}_${obj.LastName}`;
-        if (!acc[key]) {
-            acc[key] = { ...obj, Concerns: [obj.Concern] };
-        } else {
-            acc[key].Concerns.push(obj.Concern);
-        }
-        delete acc[key].Concern;
-        return acc;
-    }, {});
-    return Object.values(consolidatedData);
-}
+
+
 
 const scoreboard = async (req, res) => {
     try {

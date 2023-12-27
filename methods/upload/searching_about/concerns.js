@@ -1,23 +1,8 @@
 require('express');
 const con = require('../../../project_connections/database_connection')
+const {merge} = require("nodemon/lib/utils");
 
-function merge (results1 , results2 , key) {
 
-    const mergedArray = results1.map(obj => {
-        const matchingObjs = results2.filter(item => item.Concern === obj.Concern);
-        if (matchingObjs.length ) {
-            const mergedObj = { ...obj };
-            const names = matchingObjs.map(matchingObj => matchingObj[key]);
-            if (names.length ) {
-                mergedObj[key] = names;
-            }
-            return mergedObj;
-        }
-        return obj;
-    });
-
-    return mergedArray;
-}
 
 const top5Concerns= (req,res)=>{
     const Top5Concern = "select count(User) , Concerns.Concern  from UserConcern , Concerns where UserConcern.Concern = Concerns.Concern group by UserConcern.Concern order by count(User) desc limit 5";

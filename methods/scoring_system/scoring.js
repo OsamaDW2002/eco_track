@@ -9,7 +9,7 @@ con.query(updateScore,[email],(err) => {
     }
 });
 }
-function  AddNewTime(email , currentTime){
+function  addNewTime(email , currentTime){
     const updateScore="UPDATE Profile SET LogTime = ? WHERE Email = ?";
     con.query(updateScore,[currentTime , email],(err) => {
         if(err){
@@ -17,7 +17,7 @@ function  AddNewTime(email , currentTime){
         }
     });
 }
-function loggingPoint(email){
+function addDailyPoint(email){
      const checkTime = "SELECT Score,LogTime FROM Profile WHERE Email = ?";
 
     con.query(checkTime,[email.toLowerCase()],async(err,results)=>{
@@ -38,7 +38,7 @@ function loggingPoint(email){
                   Score++;
 
                   EditScore(email, Score);
-                  AddNewTime(email, currentTime.format('YYYY-MM-DDTHH:mm:ss').toString());
+                  addNewTime(email, currentTime.format('YYYY-MM-DDTHH:mm:ss').toString());
               } else {
                   console.log("Less than 24 hours have passed to obtain the point");
               }
@@ -67,4 +67,4 @@ function addPoints(email , pointNum){
         }
     });
 }
-module.exports = {addPoints,loggingPoint};
+module.exports = {addPoints, addDailyPoint};
