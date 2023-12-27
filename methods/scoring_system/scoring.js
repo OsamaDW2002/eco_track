@@ -2,7 +2,7 @@ require('express');
 const con = require('../../project_connections/database_connection');
 const moment = require('moment');
 function EditScore(email , Score){
-const updateScore="UPDATE Profile SET Score ="+Score+ " WHERE Email = ?";
+const updateScore="UPDATE Profile SET Score ="+Score+" WHERE Email = ?";
 con.query(updateScore,[email],(err) => {
     if(err){
         throw err;
@@ -22,25 +22,30 @@ function addDailyPoint(email){
 
     con.query(checkTime,[email.toLowerCase()],async(err,results)=>{
       try {
-              console.log(results[0].LogTime)
+          console.log(results[0].LogTime)
+          if (!results[0].LogTime) {
+              addNewTime(email, currentTime.format('YYYY-MM-DDTHH:mm:ss').toString());
+          } else {
               const lastTime = moment(results[0].LogTime, 'YYYY-MM-DDTHH:mm:ss');
               console.log(lastTime)
+
               if (lastTime.isValid()) {
                   const currentTime = moment();
                   const diffInMilliseconds = Math.abs(currentTime.diff(lastTime));
 
-                   const diffInHours = moment.duration(diffInMilliseconds).asHours();
+                  const diffInHours = moment.duration(diffInMilliseconds).asHours();
 
                   console.log(diffInHours); // Output the difference in hours
 
-              if (!results[1] && diffInHours > 24) {
-                  let Score = parseInt(results[0].Score);
-                  Score++;
+                  if (!results[1] && diffInHours > 24) {
+                      let Score = parseInt(results[0].Score);
+                      Score++;
 
-                  EditScore(email, Score);
-                  addNewTime(email, currentTime.format('YYYY-MM-DDTHH:mm:ss').toString());
-              } else {
-                  console.log("Less than 24 hours have passed to obtain the point");
+                      EditScore(email, Score);
+                      addNewTime(email, currentTime.format('YYYY-MM-DDTHH:mm:ss').toString());
+                  } else {
+                      console.log("Less than 24 hours have passed to obtain the point");
+                  }
               }
           }
       }
