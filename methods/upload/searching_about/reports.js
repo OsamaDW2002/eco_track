@@ -1,4 +1,4 @@
- const {queryAsync} = require("../../common_methods");
+ const {queryAsync, matchNLPSet} = require("../../common_methods");
 
 
 const getAllReports = async (req, res) => {
@@ -82,4 +82,40 @@ const getReportsByConcern = async (req, res) => {
     }
 };
 
-module.exports = {getAllReports, getSpecificReport, getReportsByConcern};
+
+ const searchReportsByTextOrLocation = async (req, res) => {
+     try {
+         const searchText = req.query.text;
+         const searchLocation = req.query.location;
+
+          if (!searchText && !searchLocation) {
+             return res.status(400).send('Invalid Data. Please provide text or location to search.');
+         }
+
+          const concernsArray = await matchNLPSet(searchText);
+
+          let query = 'SELECT * FROM Report WHERE';
+         const queryParams = [];
+
+          if (concernsArray.length > 0) {
+             query += ` Concern IN (${concernsArray.map(concern => `'${concern}'`).join(',')})`;
+         }
+
+         if (searchLocation) {
+             if (concernsArray.length > 0) {
+                 query += ' AND';
+             }
+             query += ' Location = ?';
+             queryParams.push(searchLocation);
+         }
+
+          const searchResults = await queryAsync(query, queryParams);
+
+         return res.status(200).json({ results: searchResults, text: searchText, location: searchLocation });
+     } catch (error) {
+         console.error('Error searching reports by text or location:', error);
+         return res.status(500).send('Internal Server Error');
+     }
+ };
+
+module.exports = {getAllReports, getSpecificReport, getReportsByConcern,searchReportsByTextOrLocation};

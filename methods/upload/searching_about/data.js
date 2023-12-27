@@ -1,4 +1,5 @@
 const con = require("../../../project_connections/database_connection");
+const {queryAsync, matchNLPSet} = require("../../common_methods");
 
 const getDataById = async (req, res) => {
     try {
@@ -64,4 +65,48 @@ const getDataByConcern = async (req, res) => {
     }
 };
 
-module.exports = { getDataById, getDataByConcern };
+const searchDataByTextOrLocation = async (req, res) => {
+    try {
+        const searchText = req.query.text;
+        const searchLocation = req.query.location;
+
+         if (!searchText && !searchLocation) {
+            return res.status(400).send('Invalid Data. Please provide text or location to search.');
+        }
+
+         const concernsArray = await matchNLPSet(searchText);
+
+         let query = 'SELECT * FROM EnvData WHERE';
+        const queryParams = [];
+
+         if (concernsArray.length > 0) {
+             query += ` Concern IN (${concernsArray.map(concern => `'${concern}'`).join(',')})`;
+        }
+
+        if (searchText) {
+            if (concernsArray.length > 0) {
+                query += ' AND';
+            }
+            query += ' (Notes LIKE ? OR Type LIKE ?)';
+            const searchPattern = `%${searchText}%`;
+            queryParams.push(searchPattern, searchPattern);
+        }
+
+        if (searchLocation) {
+            if (concernsArray.length > 0 || searchText) {
+                query += ' AND';
+            }
+            query += ' Location = ?';
+            queryParams.push(searchLocation);
+        }
+
+         const searchResults = await queryAsync(query, queryParams);
+
+        return res.status(200).json({ results: searchResults, text: searchText, location: searchLocation });
+    } catch (error) {
+        console.error('Error searching data by text or location:', error);
+        return res.status(500).send('Internal Server Error');
+    }
+};
+
+module.exports = { getDataById, getDataByConcern, searchDataByTextOrLocation };

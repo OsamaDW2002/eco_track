@@ -57,6 +57,36 @@ async function matchNLP(phrase) {
     });
 }
 
+async function matchNLPSet(phrase) {
+    return new Promise((resolve, reject) => {
+        const sql = 'SELECT * FROM Concerns';
+        let matchers = {};
+        con.query(sql, async (err, results) => {
+            if (err) {
+                reject(err);
+            }
+            if (results.length !== 0) {
+                for (const res of results) {
+                    matchers[snakeCase(res.Concern)] = res.Concern.toLowerCase();
+                }
+                const response = await axios.post(process.env.NLP_ENDPOINT, {
+                    input_phrase: phrase,
+                    matchers: matchers,
+                });
+
+                 const filteredResults = response.data.results.filter(result => result.value >= 25);
+
+                 const concernsArray = filteredResults.map(result => snakeToTitle(result.matcher).toLowerCase());
+
+                resolve(concernsArray);
+            } else {
+                 resolve([]);
+            }
+        });
+    });
+}
+
+
 function getKeyForValueGreaterThanPointFour(inputMap) {
     let keyForValueGreaterThanPointFour = 'DNE';
 
@@ -104,4 +134,4 @@ const queryAsync = async (sql, params) => {
     });
 };
 
-module.exports={matchNLP,generateRandomString,snakeCase,getKeyForValueGreaterThanPointFour,snakeToTitle,merge,queryAsync}
+module.exports={matchNLP,generateRandomString,snakeCase,getKeyForValueGreaterThanPointFour,snakeToTitle,merge,queryAsync,matchNLPSet}

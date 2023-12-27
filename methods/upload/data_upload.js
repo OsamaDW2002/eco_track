@@ -6,9 +6,9 @@ require('dotenv').config();
 
 const uploadData = async (req, res) => {
     try {
-        const {value, type, notes, collection_date: collectionDate} = req.body;
+        const {value, type, notes, collection_date: collectionDate,location} = req.body;
 
-        if (!value || !type || !notes || !collectionDate) {
+        if (!value || !type || !notes || !collectionDate || !location) {
             return res.status(400).send("Invalid Data");
         }
 
@@ -16,8 +16,8 @@ const uploadData = async (req, res) => {
         console.log(concern);
         const user = req.user.email;
 
-        const sql = "INSERT INTO EnvData (Value, Type, Notes, CollectionDate, Concern, Source) VALUES (?, ?, ?, ?, ?, ?)";
-        await queryAsync(sql, [value, type, notes, collectionDate, concern, user]);
+        const sql = "INSERT INTO EnvData (Value, Type, Notes, CollectionDate, Concern, Source,Location) VALUES (?, ?, ?, ?, ?, ?)";
+        await queryAsync(sql, [value, type, notes, collectionDate, concern, user,location]);
 
         addPoints(user, 5);
         const dataToPub = {"type": "data", "concern": concern, "owner": user, "title": type, "value": value};
@@ -56,5 +56,8 @@ const removeData = async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 };
+
+
+
 
 module.exports = {uploadData, removeData};

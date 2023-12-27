@@ -121,4 +121,5 @@ console.log(existingReport)
     }
 };
 
-module.exports = {uploadReport, removeReport, updateReport};
+ module.exports = { uploadReport, removeReport, updateReport };
+
