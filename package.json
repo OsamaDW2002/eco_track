@@ -4,7 +4,7 @@
   "scripts": {
     "serve": "firebase emulators:start --only ",
     "shell": "firebase functions:shell",
-    "deploy": "firebase deploy --only functions ",
+    "deploy": "firebase deploy --only  ",
     "logs": "firebase functions:log",
     "hmr": "../node_modules/.bin/nodemon index.js",
     "nodemon": "npm run hmr",

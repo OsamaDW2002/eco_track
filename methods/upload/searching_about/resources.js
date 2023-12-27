@@ -1,5 +1,4 @@
-require('express');
-const {queryAsync} = require("../../common_methods");
+ const {queryAsync} = require("../../common_methods");
 
 
 const getAllResources = async (req, res) => {

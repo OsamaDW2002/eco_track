@@ -1,12 +1,12 @@
- const { addPoints } = require("../scoring_system/scoring");
+const {addPoints} = require("../scoring_system/scoring");
 const publishToPub = require("../alert/messaging_client");
-const { matchNLP, queryAsync} = require("../common_methods");
+const {matchNLP, queryAsync, snakeToTitle} = require("../common_methods");
 require('dotenv').config();
 
 
 const uploadData = async (req, res) => {
     try {
-        const { value, type, notes, collection_date:collectionDate } = req.body;
+        const {value, type, notes, collection_date: collectionDate} = req.body;
 
         if (!value || !type || !notes || !collectionDate) {
             return res.status(400).send("Invalid Data");
@@ -20,10 +20,10 @@ const uploadData = async (req, res) => {
         await queryAsync(sql, [value, type, notes, collectionDate, concern, user]);
 
         addPoints(user, 5);
-        const dataToPub = { "type": "data", "concern": concern, "owner": user, "title": type, "value": value };
+        const dataToPub = {"type": "data", "concern": concern, "owner": user, "title": type, "value": value};
         await publishToPub(dataToPub);
 
-        res.send("Data uploaded");
+        res.send(`Data uploaded under the environmental concern: ${snakeToTitle(concern)}`);
     } catch (error) {
         console.error("Error uploading data:", error);
         res.status(500).send("Internal Server Error");
@@ -57,4 +57,4 @@ const removeData = async (req, res) => {
     }
 };
 
-module.exports = { uploadData, removeData };
+module.exports = {uploadData, removeData};

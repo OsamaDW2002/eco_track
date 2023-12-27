@@ -1,25 +1,26 @@
 const bcrypt = require('bcrypt')
- const {generateToken} = require("../auth");
+const {generateToken} = require("../auth");
 const {addDailyPoint} = require("../scoring_system/scoring");
 const {queryAsync} = require("../common_methods");
+const moment = require("moment");
 
 const registerNewAccount = async (req, res) => {
     try {
-        const {first_name: firstName, last_name:lastName, email, password, profession} = req.body;
+        const {first_name: firstName, last_name: lastName, email, password, profession} = req.body;
 
-         const existingUserQuery = "SELECT Email FROM Profile WHERE Email = ?";
+        const existingUserQuery = "SELECT Email FROM Profile WHERE Email = ?";
         const result = await queryAsync(existingUserQuery, [email.toLowerCase()]);
 
         if (result.length) {
             return res.status(400).send("Email already exists");
         }
 
-         const hashPass = await bcrypt.hash(password, 10);
+        const hashPass = await bcrypt.hash(password, 10);
+        const currentTime = moment()
+        const insertProfileQuery = "INSERT INTO Profile (FirstName, LastName, Email, Profession, Score,LogTime) VALUES (?, ?, ?, ?, ?)";
+        await queryAsync(insertProfileQuery, [firstName, lastName, email.toLowerCase(), profession, 1, currentTime.format('YYYY-MM-DDTHH:mm:ss').toString()]);
 
-         const insertProfileQuery = "INSERT INTO Profile (FirstName, LastName, Email, Profession, Score) VALUES (?, ?, ?, ?, ?)";
-        await queryAsync(insertProfileQuery, [firstName, lastName, email.toLowerCase(), profession, 1]);
-
-         const insertUserPassQuery = "INSERT INTO UserPass (Email, Pass) VALUES (?, ?)";
+        const insertUserPassQuery = "INSERT INTO UserPass (Email, Pass) VALUES (?, ?)";
         await queryAsync(insertUserPassQuery, [email.toLowerCase(), hashPass]);
 
         return res.status(201).send("Registration successful. You can now proceed.");
@@ -32,6 +33,11 @@ const registerNewAccount = async (req, res) => {
 const login = async (req, res) => {
     try {
         const {email, password} = req.body;
+        const deletedQuery = "SELECT DELETED FROM PROFILE WHERE EMAIL =?"
+        const isDeleted = await queryAsync(deletedQuery, req.user.email)
+        if (isDeleted === 1)
+            return res.status(404).send("User doesn't exist");
+
         const sql = "SELECT PASS FROM UserPass WHERE Email = ?";
         const result = await queryAsync(sql, [email.toLowerCase()]);
 
@@ -68,27 +74,32 @@ const login = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { new_first_name:newFirstName, new_last_name:newLastName, new_profession:newProfession, new_user_concern:newUserConcerns } = req.body;
+        const {
+            new_first_name: newFirstName,
+            new_last_name: newLastName,
+            new_profession: newProfession,
+            new_user_concern: newUserConcerns
+        } = req.body;
         const currentEmail = req.user.email;
 
         let status = 200;
         let message = "Profile and concerns updated successfully";
 
-         const existingUserQuery = "SELECT Email, FirstName, LastName, Profession FROM Profile WHERE Email = ?";
+        const existingUserQuery = "SELECT Email, FirstName, LastName, Profession FROM Profile WHERE Email = ?";
         const existingUser = await queryAsync(existingUserQuery, [currentEmail.toLowerCase()]);
 
         if (existingUser.length === 0) {
             status = 404;
             message = "User not found";
         } else {
-             let updateFields = [];
+            let updateFields = [];
             let updateValues = [];
 
             const fieldMap = {
                 FirstName: newFirstName,
                 LastName: newLastName,
                 Profession: newProfession,
-             };
+            };
 
             Object.entries(fieldMap).forEach(([field, value]) => {
                 if (value !== undefined && value !== null) {
@@ -98,11 +109,11 @@ const updateProfile = async (req, res) => {
             });
 
             if (updateFields.length > 0) {
-                 const updateProfileQuery = `UPDATE Profile SET ${updateFields.join(', ')} WHERE Email=?`;
+                const updateProfileQuery = `UPDATE Profile SET ${updateFields.join(', ')} WHERE Email=?`;
                 await queryAsync(updateProfileQuery, [...updateValues, currentEmail.toLowerCase()]);
             }
 
-             if (Array.isArray(newUserConcerns)) {
+            if (Array.isArray(newUserConcerns)) {
                 const updateConcernsQuery = "UPDATE UserConcern SET Concern=? WHERE User=?";
 
                 for (let index = 0; index < newUserConcerns.length; index++) {
@@ -125,22 +136,22 @@ const updateProfile = async (req, res) => {
 
 const updatePassword = async (req, res) => {
     try {
-        const {current_password:currentPassword, new_password:newPassword} = req.body;
+        const {current_password: currentPassword, new_password: newPassword} = req.body;
         const email = req.user.email;
 
-         const currentPasswordQuery = "SELECT Pass FROM UserPass WHERE Email=?";
+        const currentPasswordQuery = "SELECT Pass FROM UserPass WHERE Email=?";
         const result = await queryAsync(currentPasswordQuery, [email.toLowerCase()]);
 
         if (result.length === 0) {
             return res.status(404).send("User not found");
         }
 
-         const isPasswordMatch = await bcrypt.compare(currentPassword, result[0].Pass);
+        const isPasswordMatch = await bcrypt.compare(currentPassword, result[0].Pass);
 
         if (isPasswordMatch) {
-             const hashPass = await bcrypt.hash(newPassword, 10);
+            const hashPass = await bcrypt.hash(newPassword, 10);
 
-             const updatePasswordQuery = "UPDATE UserPass SET Pass=? WHERE Email=?";
+            const updatePasswordQuery = "UPDATE UserPass SET Pass=? WHERE Email=?";
             await queryAsync(updatePasswordQuery, [hashPass, email.toLowerCase()]);
 
             return res.status(200).send("Password updated successfully");
@@ -184,7 +195,7 @@ const addConcern = async (req, res) => {
 
 const deleteProfile = async (req, res) => {
     try {
-        const email = req.user.email; // Extract email from req.user
+        const email = req.user.email;
 
         const checkExistingUserQuery = "SELECT * FROM Profile WHERE Email = ?";
         const checkResult = await queryAsync(checkExistingUserQuery, [email.toLowerCase()]);
@@ -207,6 +218,6 @@ const deleteProfile = async (req, res) => {
     }
 };
 
-module.exports = { registerNewAccount, login, updateProfile, updatePassword, addConcern, deleteProfile };
+module.exports = {registerNewAccount, login, updateProfile, updatePassword, addConcern, deleteProfile};
 
 
