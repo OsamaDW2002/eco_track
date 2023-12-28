@@ -1,11 +1,11 @@
- const axios = require("axios");
-const { snakeCase, getKeyForValueGreaterThanPointFour, snakeToTitle, queryAsync} = require("../common_methods");
+const axios = require("axios");
+const { snakeCase, getKeyForValueGreaterThanPointFour, snakeToTitle, queryAsync } = require("../common_methods");
 
 const addConcern = async (req, res) => {
     try {
         const concern = req.params.concern;
         const existingConcern = await queryAsync('SELECT * FROM Concerns WHERE Concern = ?', [concern.toLowerCase()]);
-         if (existingConcern.length !== 0) {
+        if (existingConcern.length !== 0) {
             return res.send("Concern already exists");
         }
 
@@ -40,4 +40,14 @@ const addConcern = async (req, res) => {
     }
 };
 
-module.exports = addConcern;
+const listAllConcerns = async (req, res) => {
+    try {
+        const allConcerns = await queryAsync('SELECT * FROM Concerns');
+        res.json(allConcerns);
+    } catch (error) {
+        console.error('Error listing all concerns:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
+module.exports = { addConcern, listAllConcerns };
