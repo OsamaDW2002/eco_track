@@ -173,7 +173,7 @@ const addConcern = async (req, res) => {
         const checkGlobalResult = await queryAsync(checkExistingGlobalConcernQuery, [newConcern.toLowerCase()]);
 
         if (checkGlobalResult.length === 0) {
-            return res.status(400).send("Concern does not exist globally. Please add the concern globally first.");
+            return res.status(400).send("Concern does not exist in the database. Please add the concern to the database first or check if it exist under another name.");
         }
 
         const checkExistingUserConcernQuery = "SELECT * FROM UserConcern WHERE User = ? AND Concern = ?";

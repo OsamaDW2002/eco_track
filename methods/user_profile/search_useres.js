@@ -45,5 +45,26 @@ const findSpecificUser = async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 };
+const findUsersByConcern = async (req, res) => {
+    try {
+        const concern = req.params.concern;
+        console.log(concern);
 
-module.exports = { scoreboard, findSpecificUser };
+        const findUsersQuery = `
+            SELECT FirstName, LastName, Email, Profession, Concern, Score
+            FROM UserConcern
+            JOIN Profile ON UserConcern.User = Profile.Email
+            WHERE UserConcern.Concern = ?
+        `;
+
+        const results = await queryAsync(findUsersQuery, [concern]);
+
+        const consolidatedData = merge(results);
+        res.json(consolidatedData);
+    } catch (error) {
+        console.error("Error fetching users by concern:", error);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+module.exports = { scoreboard, findSpecificUser,findUsersByConcern };

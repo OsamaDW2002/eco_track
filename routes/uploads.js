@@ -3,9 +3,9 @@ const { authenticateTokenHandler } = require("../methods/auth");
 const { uploadData, removeData } = require("../methods/upload/data_upload");
 const {uploadReport, removeReport, updateReport} = require("../methods/upload/report_upload");
 const {removeResource, uploadResource, updateResource} = require("../methods/upload/resource_upload");
-const {getAllReports, getSpecificReport, getReportsByConcern, searchReportsByTextOrLocation} = require("../methods/upload/searching_about/reports");
-const {getSpecificResource, getAllResources, getResourcesByConcern} = require("../methods/upload/searching_about/resources");
-const {getDataById, getDataByConcern, searchDataByTextOrLocation} = require("../methods/upload/searching_about/data");
+const {getAllReports, getSpecificReport, getReportsByConcern, searchReportsByTextOrLocation} = require("../methods/upload/search_and_retrieval/reports");
+const {getSpecificResource, getAllResources, getResourcesByConcern} = require("../methods/upload/search_and_retrieval/resources");
+const {getDataById, getDataByConcern, searchDataByTextOrLocation} = require("../methods/upload/search_and_retrieval/data");
 
 const uploadRoutes = Router();
 
